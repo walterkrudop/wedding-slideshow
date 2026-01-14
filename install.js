@@ -3,43 +3,76 @@ const path = require('path')
 
 // 1. Define the file structure and contents
 const files = {
-   // --- Configuration Files ---
-   'package.json': JSON.stringify({
-      "name": "wedding-pwa",
-      "private": true,
-      "version": "0.0.0",
-      "type": "module",
-      "scripts": {
-         "dev": "vite",
-         "build": "vite build",
-         "preview": "vite preview"
-      },
-      "dependencies": {
-         "lucide-react": "^0.294.0",
-         "react": "^18.2.0",
-         "react-dom": "^18.2.0"
-      },
-      "devDependencies": {
-         "@types/react": "^18.2.37",
-         "@types/react-dom": "^18.2.15",
-         "@vitejs/plugin-react": "^4.2.0",
-         "autoprefixer": "^10.4.16",
-         "postcss": "^8.4.31",
-         "tailwindcss": "^3.3.5",
-         "vite": "^5.0.0"
-      }
-   }, null, 2),
+  // --- Configuration Files ---
+  'package.json': JSON.stringify({
+    "name": "wedding-pwa",
+    "private": true,
+    "version": "1.0.0",
+    "type": "module",
+    "scripts": {
+      "dev": "vite",
+      "build": "vite build",
+      "preview": "vite preview"
+    },
+    "dependencies": {
+      "lucide-react": "^0.294.0",
+      "react": "^18.2.0",
+      "react-dom": "^18.2.0"
+    },
+    "devDependencies": {
+      "@types/react": "^18.2.37",
+      "@types/react-dom": "^18.2.15",
+      "@vitejs/plugin-react": "^4.2.0",
+      "autoprefixer": "^10.4.16",
+      "postcss": "^8.4.31",
+      "tailwindcss": "^3.3.5",
+      "vite": "^5.0.0",
+      "vite-plugin-pwa": "^0.17.0"
+    }
+  }, null, 2),
 
-   'vite.config.js': `
+  'vite.config.js': `
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+      manifest: {
+        name: "Chloe and Brandon's Wedding",
+        short_name: "Chloe & Brandon",
+        description: "A wedding to remember",
+        theme_color: "#000000",
+        background_color: "#ffffff",
+        display: "standalone",
+        start_url: "/",
+        icons: [
+          {
+            src: "logo192.png",
+            sizes: "192x192",
+            type: "image/png"
+          },
+          {
+            src: "logo512.png",
+            sizes: "512x512",
+            type: "image/png"
+          }
+        ]
+      },
+      workbox: {
+        // This ensures the music and images are cached for offline use
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,mp3}'] 
+      }
+    })
+  ],
 })
 `,
 
-   'tailwind.config.js': `
+  'tailwind.config.js': `
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -53,7 +86,7 @@ export default {
 }
 `,
 
-   'postcss.config.js': `
+  'postcss.config.js': `
 export default {
   plugins: {
     tailwindcss: {},
@@ -62,14 +95,14 @@ export default {
 }
 `,
 
-   '.gitignore': `
+  '.gitignore': `
 node_modules
 dist
 .DS_Store
 `,
 
-   // --- Public Assets ---
-   'index.html': `
+  // --- Public Assets ---
+  'index.html': `
 <!doctype html>
 <html lang="en">
   <head>
@@ -77,7 +110,6 @@ dist
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Wedding Slideshow</title>
-    <link rel="manifest" href="/manifest.json">
   </head>
   <body>
     <div id="root"></div>
@@ -86,34 +118,8 @@ dist
 </html>
 `,
 
-   'public/manifest.json': JSON.stringify({
-      "short_name": "Chloe & Brandon",
-      "name": "Chloe and Brandon's Wedding",
-      "icons": [
-         {
-            "src": "favicon.ico",
-            "sizes": "64x64 32x32 24x24 16x16",
-            "type": "image/x-icon"
-         },
-         {
-            "src": "logo192.png",
-            "type": "image/png",
-            "sizes": "192x192"
-         },
-         {
-            "src": "logo512.png",
-            "type": "image/png",
-            "sizes": "512x512"
-         }
-      ],
-      "start_url": ".",
-      "display": "standalone",
-      "theme_color": "#000000",
-      "background_color": "#ffffff"
-   }, null, 2),
-
-   // --- Source Code ---
-   'src/main.jsx': `
+  // --- Source Code ---
+  'src/main.jsx': `
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
@@ -126,14 +132,14 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 )
 `,
 
-   'src/index.css': `
+  'src/index.css': `
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 `,
 
-   // THE MAIN APP CODE GENERATED EARLIER
-   'src/App.jsx': `
+  // THE MAIN APP CODE GENERATED EARLIER
+  'src/App.jsx': `
 import React, { useState, useEffect, useRef } from 'react';
 import { Play, Volume2, VolumeX, Heart } from 'lucide-react';
 
@@ -357,50 +363,50 @@ export default WeddingSlideshow;
 
 // 2. Helper to create directories recursively
 function ensureDirectoryExistence(filePath) {
-   const dirname = path.dirname(filePath)
-   if (fs.existsSync(dirname)) {
-      return true
-   }
-   ensureDirectoryExistence(dirname)
-   fs.mkdirSync(dirname)
+  const dirname = path.dirname(filePath)
+  if (fs.existsSync(dirname)) {
+    return true
+  }
+  ensureDirectoryExistence(dirname)
+  fs.mkdirSync(dirname)
 }
 
 // 3. Helper to create empty folders for assets
 function createAssetFolders() {
-   const dirs = ['public/images', 'public/music']
-   dirs.forEach(dir => {
-      if (!fs.existsSync(dir)) {
-         fs.mkdirSync(dir, { recursive: true })
-         console.log(`Created directory: ${dir}`)
-      }
-   })
+  const dirs = ['public/images', 'public/music']
+  dirs.forEach(dir => {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true })
+      console.log(`Created directory: ${dir}`)
+    }
+  })
 }
 
 // 4. Main execution
 console.log("💍 Initializing Wedding PWA...")
 
 try {
-   // Create file structure
-   Object.keys(files).forEach(fileName => {
-      const content = files[fileName]
-      // Trim leading slash if present to avoid absolute path issues
-      const safeName = fileName.startsWith('/') ? fileName.slice(1) : fileName
+  // Create file structure
+  Object.keys(files).forEach(fileName => {
+    const content = files[fileName]
+    // Trim leading slash if present to avoid absolute path issues
+    const safeName = fileName.startsWith('/') ? fileName.slice(1) : fileName
 
-      ensureDirectoryExistence(safeName)
-      fs.writeFileSync(safeName, content.trim())
-      console.log(`Created file: ${safeName}`)
-   })
+    ensureDirectoryExistence(safeName)
+    fs.writeFileSync(safeName, content.trim())
+    console.log(`Created file: ${safeName}`)
+  })
 
-   // Create asset folders
-   createAssetFolders()
+  // Create asset folders
+  createAssetFolders()
 
-   console.log("\n✅ Success! Project structure created.")
-   console.log("\nNext steps:")
-   console.log("1. Run 'npm install'")
-   console.log("2. Add your images to public/images/ (1.jpg - 8.jpg)")
-   console.log("3. Add music to public/music/ (music.mp3)")
-   console.log("4. Run 'npm run dev' to test")
+  console.log("\n✅ Success! Project structure created.")
+  console.log("\nNext steps:")
+  console.log("1. Run 'npm install'")
+  console.log("2. Add your images to public/images/ (1.jpg - 8.jpg)")
+  console.log("3. Add music to public/music/ (music.mp3)")
+  console.log("4. Run 'npm run dev' to test")
 
 } catch (err) {
-   console.error("Error creating project:", err)
+  console.error("Error creating project:", err)
 }
